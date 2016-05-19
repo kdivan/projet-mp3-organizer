@@ -1,9 +1,10 @@
 <h1>SONGS</h1>
 <div>
-    <input type="button" value="Ajouter" ng-click="onAdd()">
+    <input type="text" ng-model="search.title">
 </div>
-<div ng-repeat="user in users" style="background-color:black;color:white;display:inline-block;padding:10px;margin:10px;border-radius:10px;cursor:pointer">
-    {{song.title}}
-    <input type="button" value="Edit" ng-click="onSongForm(song)">
-    <input type="button" value="X" ng-click="onRemove(song)">
+<div ng-repeat="song in songs | filter:search:strict"
+     style="background-color:black;color:white;display:inline-block;padding:10px;margin:10px;border-radius:10px;cursor:pointer">
+{{song.title}}
+    <input type="button" value="Edit" ng-click="onViewSong(song)">
+    <input type="button" value="X" ng-click="onDeleteSong(song.id)">
 </div>
