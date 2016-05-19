@@ -7,43 +7,53 @@
 </head>
 <body ng-app="MyApp">
 
-<div ng-view></div>
+    <a href="#/songs">Songs</a>
+    <div>
+    </div>
+
+    <div ng-view></div>
 
 <script>
 
     var app = angular.module("MyApp", ["ngRoute"]);
 
-    app.controller("SongController", function($http, $rootScope, $scope, $location){
 
-        $http.get("/title?count=10").success(onResult);
+    app.controller("SongController", function($http, $rootScope, $scope, $location, $interval){
 
-        function onResult(data)
-        {
-            $rootScope.songs = data;
-        }
+        $rootScope.search = "";
 
-        $scope.onProfil = function(song)
+        this.loadSongs  = function() {
+            $http.get("/songs?count=20").success(function(data){
+                $rootScope.songs = data;
+                console.log( data );
+            });
+        };
+
+        this.loadSongs();
+
+        $interval(function () {
+            console.log("entrer");
+            this.loadSongs();
+        }.bind(this), 5000);
+
+
+        $scope.onViewSong = function(song)
         {
             $location.path("/songs/" + song.id);
         };
 
-        $scope.onAdd = function()
+        $scope.onDeleteSong = function(songId)
         {
-            $location.path("/songs/-1");
-        };
-
-        $scope.onRemove = function(song)
-        {
-
+            console.log("On delete song");
             for (var i = 0; i < $rootScope.songs.length; i++)
             {
-                if ($rootScope.songs[i].id == song.id)
+                if ($rootScope.songs[i].id == songId)
                 {
                     $rootScope.songs.splice(i, 1);
-                    $http.delete("/names/" + song.id);
                     break;
                 }
             }
+            $http.delete("/songs/" + songId);
         };
     });
 
@@ -70,40 +80,33 @@
             {
                 $scope.song = song;
             }
-            else
-            {
-                $location.path("/songs");
-            }
         }
 
 
-        $scope.onSave = function()
+        $scope.onSongSave = function(song)
         {
-            /*for (var i = 0; i < $rootScope.songs.length; i++)
-             {
-             if ($rootScope.songs[i].id == $scope.song.id)
-             {
-             $rootScope.songs[i] = $scope.song;
-             break;
-             }
-             }*/
-            if ($scope.song.id == -1) // ajout
-            {
-                $http.post("/titles/", $scope.song);
+            console.log("on save" + song.id);
+            if(typeof song.id !== 'undefined') {
+                //lors du retour au controlleur de base, les données
+                //sont rechargés (une nouvelle requete ajax est faite)
+                $http.put("/songs/" + song.id, song)
+                        .success(function (data, status, headers) {
+                            $location.path("/songs");
+                        })
+                        .error(function (data, status, header, config) {
+                            $scope.ServerResponse =  htmlDecode("Data: " + data +
+                                    "\n\n\n\nstatus: " + status +
+                                    "\n\n\n\nheaders: " + header +
+                                    "\n\n\n\nconfig: " + config);
+                        });
             }
-            else // modification
-            {
-                $http.put("/titles/" + $scope.song.id, $scope.song);
-            }
-
-            $location.path("/songs");
         }
     });
 
     app.config( function($routeProvider){
 
         $routeProvider
-                .when("/", {
+                .when("/songs", {
                     templateUrl : "songs.html",
                     controller : "SongController"
                 })

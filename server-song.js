@@ -6,9 +6,6 @@ var mysql = require('mysql');
 
 var app = express();
 
-/*
-Test comment
-*/
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 app.use(express.static(__dirname));
@@ -40,7 +37,7 @@ var Song = sequelize.define('song', {
         type: Sequelize.STRING,
         allowNull: false,
     },
-    year: Sequelize.INTEGER(2),
+    year: Sequelize.INTEGER(4),
     album: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -67,7 +64,7 @@ app.get("/songs", function (req, res) {
     if (!count) {
         count = 15;
     }
-    Song.findAll({ limit : count})
+    Song.findAll({ limit : parseInt(count)})
         .then(function(songs) {
             res.json(songs);
         })
