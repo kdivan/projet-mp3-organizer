@@ -2,6 +2,9 @@ var ID3 = require('id3js');
 var chokidar = require('chokidar');
 var path = require('path');
 var fs = require('fs');
+var http = require('http');
+var querystring = require('querystring');
+var sanitize = require('sanitize-filename');
 
 var folderCreated = false;
 var files = [];
@@ -31,25 +34,6 @@ function addFileToExtract(pathname) {
     extract();
 }
 
-function createAlbumDir(album) {
-    if (typeof album != "undefined" || album != "" || album != null) {
-        fs.stat("generated", function (error) {
-            if (error) {
-                if (!folderCreated) {
-                    fs.mkdir("generated", function () {
-                    });
-                    folderCreated = true;
-                }
-            }
-            fs.appendFile("generated" + letter + ".txt", str, 'utf8', function (error) {
-                if (error)
-                    console.log(error);
-            });
-        });
-    }
-
-}
-
 function extract() {
 
     if (extracted || files.length == 0) {
@@ -70,13 +54,16 @@ function extract() {
 
         //ToDo creation du repertoire a partir de l'album et deplacement du fichier dans l'album
         //Si on ne connais pas l'album on crée un dossier inconnu-mois-en-cours et on deplace
+        var newPath = "";
+        requestApiSong(tags);
         if(album != "" && typeof album == "string"){
-            moveToDirectory("media/"+album, pathname);
+            newPath = "media/"+album;
+            moveToDirectory(newPath, pathname);
         }else{
             var monthNow = new Date().getMonth();
-            moveToDirectory("media/inconnu-"+monthNow, pathname);
+            newPath = "media/inconnu-"+monthNow;
+            moveToDirectory(newPath, pathname);
         }
-
 
         extracted = false;
         //createAlbumDir(album);
@@ -95,6 +82,36 @@ function moveToDirectory(directory,pathname) {
             }
         }
         var newPath = pathname.split("\\")[1];
+        console.log(pathname);
         fs.rename(pathname, directory+"/"+newPath);
     });
+}
+function requestApiSong(tags){
+    tags.directory_name = tags.album;
+    // Build the post string from an object
+    var post_data = querystring.stringify(tags);
+
+    // An object of options to indicate where to post to
+    var post_options = {
+        host: 'localhost',
+        port: '8000',
+        path: '/songs',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(post_data)
+        }
+    };
+
+    // Set up the request
+    var post_req = http.request(post_options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('Response: ' + chunk);
+        });
+    });
+
+    // post the data
+    post_req.write(post_data);
+    post_req.end();
 }
