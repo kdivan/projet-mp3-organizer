@@ -31,25 +31,6 @@ function addFileToExtract(pathname) {
     extract();
 }
 
-function createAlbumDir(album) {
-    if (typeof album != "undefined" || album != "" || album != null) {
-        fs.stat("generated", function (error) {
-            if (error) {
-                if (!folderCreated) {
-                    fs.mkdir("generated", function () {
-                    });
-                    folderCreated = true;
-                }
-            }
-            fs.appendFile("generated" + letter + ".txt", str, 'utf8', function (error) {
-                if (error)
-                    console.log(error);
-            });
-        });
-    }
-
-}
-
 function extract() {
 
     if (extracted || files.length == 0) {
@@ -59,42 +40,56 @@ function extract() {
 
     var pathname = files.pop();
 
+    console.log("extract");
+    console.log(pathname);
+
     ID3({file: pathname, type: ID3.OPEN_LOCAL}, function (err, tags) {
         if (err) {
             console.log(err);
             return;
         }
 
+        console.log("tags ", tags);
         var album = tags.album;
         //ToDo enregistrement en bdd
 
         //ToDo creation du repertoire a partir de l'album et deplacement du fichier dans l'album
         //Si on ne connais pas l'album on crée un dossier inconnu-mois-en-cours et on deplace
         if(album != "" && typeof album == "string"){
+            console.log("ici");
+            console.log(album, pathname);
+            console.log(pathname.split("\\"));
             moveToDirectory("media/"+album, pathname);
         }else{
             var monthNow = new Date().getMonth();
             moveToDirectory("media/inconnu-"+monthNow, pathname);
         }
 
-
         extracted = false;
         //createAlbumDir(album);
-        setTimeout(extract(), 100);
+        setTimeout(function () {
+            extract();
+        }, 100);
     });
 }
 
 function moveToDirectory(directory,pathname) {
     fs.stat(directory, function (error, stats) {
-        if (error) {
-            if (!folderCreated) {
+        console.log("moveToDirectory");
+        console.log(stats);
+        console.log(error);
+        var newPath = pathname.split("/")[1];
+        console.log("moveToDirectory pathname ",pathname)
+        fs.exists(directory + "/.dirCreated", function (doesExist) {
+            if (!doesExist) {
                 fs.mkdir(directory, function () {
-
+                    fs.writeFile(directory + "/.dirCreated", "Dir Created", function(err) {
+                        fs.rename(pathname, directory+"/"+newPath);
+                    });
                 });
-                folderCreated = true;
+            } else {
+                fs.rename(pathname, directory+"/"+newPath);
             }
-        }
-        var newPath = pathname.split("\\")[1];
-        fs.rename(pathname, directory+"/"+newPath);
+        })
     });
 }
