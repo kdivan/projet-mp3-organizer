@@ -39,3 +39,9 @@ Status
 
 #Idea
 /.idea
+temp
+temp/*
+*.mp3
+*.wma
+*.aac
+*.wmv
