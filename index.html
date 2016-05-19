@@ -1,0 +1,126 @@
+<html>
+<head>
+    <title>Amazing MP3</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="angular.js"></script>
+    <script src="angular-route.js"></script>
+</head>
+<body ng-app="MyApp">
+
+<div ng-view></div>
+
+<script>
+
+    var app = angular.module("MyApp", ["ngRoute"]);
+
+    app.controller("SongController", function($http, $rootScope, $scope, $location){
+
+        $http.get("/title?count=10").success(onResult);
+
+        function onResult(data)
+        {
+            $rootScope.songs = data;
+        }
+
+        $scope.onProfil = function(song)
+        {
+            $location.path("/songs/" + song.id);
+        };
+
+        $scope.onAdd = function()
+        {
+            $location.path("/songs/-1");
+        };
+
+        $scope.onRemove = function(song)
+        {
+
+            for (var i = 0; i < $rootScope.songs.length; i++)
+            {
+                if ($rootScope.songs[i].id == song.id)
+                {
+                    $rootScope.songs.splice(i, 1);
+                    $http.delete("/names/" + song.id);
+                    break;
+                }
+            }
+        };
+    });
+
+    app.controller("SongFormController", function($rootScope, $scope, $routeParams, $location, $http){
+
+
+        if ($routeParams.id == -1)
+        {
+            $scope.song = {id:-1};
+        }
+        else
+        {
+            var song;
+            for (var i = 0; i < $rootScope.songs.length; i++)
+            {
+                if ($rootScope.songs[i].id == $routeParams.id)
+                {
+                    song = $rootScope.songs[i];
+                    break;
+                }
+            }
+
+            if (song)
+            {
+                $scope.song = song;
+            }
+            else
+            {
+                $location.path("/songs");
+            }
+        }
+
+
+        $scope.onSave = function()
+        {
+            /*for (var i = 0; i < $rootScope.songs.length; i++)
+             {
+             if ($rootScope.songs[i].id == $scope.song.id)
+             {
+             $rootScope.songs[i] = $scope.song;
+             break;
+             }
+             }*/
+            if ($scope.song.id == -1) // ajout
+            {
+                $http.post("/titles/", $scope.song);
+            }
+            else // modification
+            {
+                $http.put("/titles/" + $scope.song.id, $scope.song);
+            }
+
+            $location.path("/songs");
+        }
+    });
+
+    app.config( function($routeProvider){
+
+        $routeProvider
+                .when("/", {
+                    templateUrl : "songs.html",
+                    controller : "SongController"
+                })
+                .when("/songs/:id", {
+                    templateUrl : "song-form.html",
+                    controller : "SongFormController"
+                })
+                .otherwise( { redirectTo : "/songs"});
+    });
+
+
+
+</script>
+
+</body>
+</html>
+
+
+
+
