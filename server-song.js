@@ -6,10 +6,12 @@ var mysql = require('mysql');
 
 var app = express();
 
+/*
+Test comment
+*/
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 app.use(express.static(__dirname));
-
 
 var sequelize = new Sequelize('esgi', 'root', 'root', {
     host: 'localhost',
