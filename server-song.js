@@ -31,11 +31,11 @@ sequelize
 var Song = sequelize.define('song', {
     artist: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     title: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     year: Sequelize.INTEGER(4),
     album: {

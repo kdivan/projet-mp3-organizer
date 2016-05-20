@@ -8,6 +8,7 @@ var sanitize = require('sanitize-filename');
 
 var files = [];
 var extracted = false;
+var now = new Date();
 /*
  *ToDo create a watcher that analyze incoming_song directory and move it to the correct directory
  * if .mp3 create directory with albums name if exist else create a new directory inconnu-date
@@ -19,12 +20,12 @@ var watcher = chokidar.watch('incoming_song/', {
 
 // Add event listeners.
 watcher.on('add', function (pathname) {
-
-    if (path.extname(pathname) == ".mp3") {//Si c'est un mp3 alors on extrait les info
+    console.log(path.extname(pathname).toLowerCase());
+    if (path.extname(pathname).toLowerCase() == ".mp3") {//Si c'est un mp3 alors on extrait les info
         addFileToExtract(pathname);
         //console.log("File " + pathname + " moved")
     } else { //Si le format ne conviens pas alors on deplace dans garbage
-        moveToDirectory('garbage/',pathname);
+        moveToDirectory('garbage/', pathname);
     }
 });
 
@@ -51,22 +52,16 @@ function extract() {
             return;
         }
 
-        console.log("tags ", tags);
         var album = tags.album;
-        //ToDo enregistrement en bdd
-
         //ToDo creation du repertoire a partir de l'album et deplacement du fichier dans l'album
         //Si on ne connais pas l'album on crée un dossier inconnu-mois-en-cours et on deplace
         var newPath = "";
         requestApiSong(tags);
-        if(album != "" && typeof album == "string"){
-            console.log("ici");
-            console.log(album, pathname);
-            console.log(pathname.split("\\"));
-            moveToDirectory("media/"+album, pathname);
-        }else{
-            var monthNow = new Date().getMonth();
-            newPath = "media/inconnu-"+monthNow;
+        if (album != "" && typeof album == "string") {
+            moveToDirectory("media/" + sanitize(album), pathname);
+        } else {
+            var refYear = now.getFullYear() + "" + now.getMonth();
+            newPath = "media/inconnu-" + refYear;
             moveToDirectory(newPath, pathname);
         }
 
@@ -77,28 +72,33 @@ function extract() {
     });
 }
 
-function moveToDirectory(directory,pathname) {
+function moveToDirectory(directory, pathname) {
     fs.stat(directory, function (error, stats) {
-        console.log("moveToDirectory");
-        console.log(stats);
-        console.log(error);
-        var newPath = pathname.split("/")[1];
-        console.log("moveToDirectory pathname ",pathname)
+        var newPath = pathname.split("\\")[1];
+        console.log("moveToDirectory pathname ", directory, pathname)
         fs.exists(directory + "/.dirCreated", function (doesExist) {
             if (!doesExist) {
                 fs.mkdir(directory, function () {
-                    fs.writeFile(directory + "/.dirCreated", "Dir Created", function(err) {
-                        fs.rename(pathname, directory+"/"+newPath);
+                    fs.writeFile(directory + "/.dirCreated", "Dir Created", function (err) {
+                        fs.rename(pathname, directory + "/" + newPath);
                     });
                 });
             } else {
-                fs.rename(pathname, directory+"/"+newPath);
+                fs.rename(pathname, directory + "/" + newPath);
             }
         })
     });
 }
-function requestApiSong(tags){
-    tags.directory_name = tags.album;
+function requestApiSong(tags) {
+    console.log(typeof tags.album, tags.album);
+
+    var refYear = now.getFullYear() + "" + now.getMonth();
+    tags.directory_name = tags.album == "" || typeof tags.album != "string" ? "inconnu-" + refYear : sanitize(tags.album);
+    tags.album = tags.directory_name;
+    tags.artist = tags.artist == "" || typeof tags.artist != "string"?"":sanitize(tags.artist);
+    tags.title = tags.title == "" || typeof tags.title != "string"?"":sanitize(tags.title);
+    tags.year = tags.year == "" || typeof tags.year != "string"?"":sanitize(tags.year);
+
     // Build the post string from an object
     var post_data = querystring.stringify(tags);
 
@@ -115,7 +115,7 @@ function requestApiSong(tags){
     };
 
     // Set up the request
-    var post_req = http.request(post_options, function(res) {
+    var post_req = http.request(post_options, function (res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
             console.log('Response: ' + chunk);
@@ -126,3 +126,9 @@ function requestApiSong(tags){
     post_req.write(post_data);
     post_req.end();
 }
+function editMetaData() {
+
+}
+module.exports = {
+    editMetaData: editMetaData,
+};
