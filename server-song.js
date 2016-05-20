@@ -125,7 +125,7 @@ app.delete("/songs/:id", function (req, res) {
             function (song) {
                 if (song) {
                     song.destroy();
-                    res.json(analyzer.deleteSongFile(song));
+                    analyzer.deleteSongFile(song);
                 } else {
                     res.json({message: "Song does not exist"});
                 }

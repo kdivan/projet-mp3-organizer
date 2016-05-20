@@ -76,7 +76,7 @@ function extract() {
 
 function moveToDirectory(directory, pathname) {
     fs.stat(directory, function (error, stats) {
-        var newPath = pathname.split("\\")[1];
+        var newPath = pathname.split("/")[1];
         console.log("moveToDirectory pathname ", directory, pathname)
         fs.exists(directory + "/.dirCreated", function (doesExist) {
             if (!doesExist) {
@@ -132,12 +132,16 @@ function requestApiSong(tags, pathname) {
 }
 
 function deleteSongFile(song) {
-    fs.exists(song.file_path, function (doesExist) {
+    fs.exists("media/"+song.file_path, function (doesExist) {
         if(doesExist) {
-            return "deleteSongFile does";
-            console.log("deleteSongFile doestexist");
-        } else {
-            return "deleteSongFile doestexist";
+            fs.unlink("media/"+song.file_path, function (err) {
+                if (err) {
+                    return "error";
+                }
+                //If not empty, returns error
+                fs.rmdir("media/"+song.directory_name, function(err) {
+                })
+            });
         }
     });
 }
