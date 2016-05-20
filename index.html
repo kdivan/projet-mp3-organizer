@@ -36,6 +36,10 @@
             this.loadSongs();
         }.bind(this), 5000);
 
+        /*$rootScope.$on("reloadSongs", function(){
+            console.log("loadsongs");
+            $scope.this.loadSongs();
+        });*/
 
         $scope.onViewSong = function(song)
         {
@@ -59,29 +63,38 @@
 
     app.controller("SongFormController", function($rootScope, $scope, $routeParams, $location, $http){
 
-
-        if ($routeParams.id == -1)
-        {
-            $scope.song = {id:-1};
+        /*this.callReloadSongs = function() {
+            $rootScope.$emit("reloadSongs", {});
         }
-        else
-        {
+
+        this.callReloadSongs();*/
+
+        if ($rootScope.songs)
+            getSongs();
+        else {
+            // recuperer les donne en ajax
+            $http.get("/songs?count=20").success(function(data){
+                $rootScope.songs = data;
+                console.log( data );
+                getSongs();
+            });
+        }
+
+        function getSongs() {
             var song;
-            for (var i = 0; i < $rootScope.songs.length; i++)
-            {
-                if ($rootScope.songs[i].id == $routeParams.id)
-                {
+            for (var i = 0; i < $rootScope.songs.length; i++) {
+                if ($rootScope.songs[i].id == $routeParams.id) {
                     song = $rootScope.songs[i];
+                    console.log(song);
+
                     break;
                 }
             }
 
-            if (song)
-            {
+            if (song) {
                 $scope.song = song;
             }
         }
-
 
         $scope.onSongSave = function(song)
         {
@@ -101,6 +114,22 @@
                         });
             }
         }
+    });
+
+    app.directive('audios', function($sce) {
+        return {
+            restrict: 'A',
+            scope: { code:'=' },
+            replace: true,
+            template: '<audio controls><source ng-src="{{url}}" type="audio/mpeg"></audio>',
+            link: function (scope) {
+                scope.$watch('code', function (newVal, oldVal) {
+                    if (newVal !== undefined) {
+                        scope.url = $sce.trustAsResourceUrl("media/" + newVal);
+                    }
+                });
+            }
+        };
     });
 
     app.config( function($routeProvider){

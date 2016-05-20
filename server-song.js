@@ -44,6 +44,14 @@ var Song = sequelize.define('song', {
         type: Sequelize.STRING,
         allowNull: false,
     },
+    file_name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+    },
+    file_path: {
+        type: Sequelize.STRING,
+        allowNull: false,
+    },
     directory_name: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -78,10 +86,28 @@ app.get("/songs", function (req, res) {
 })
 
 app.get("/songs/:id", function (req, res) {
-    Song.findById(req.params.id)
+    Song.findOne(req.params.id)
         .then(
             function(songs) {
                 res.json(songs);
+            })
+        .catch(
+            function(err) {
+                res.json({error : err});
+            }
+        );
+});
+
+app.get("/searchSongByFilePath", function (req, res) {
+    var filePath = req.query.file_path;
+    Song.findAll({
+        where:
+            {
+                file_path: filePath
+            }
+    }).then(
+            function(song) {
+                res.json(song);
             })
         .catch(
             function(err) {
@@ -96,6 +122,8 @@ app.post("/songs", function (req, res) {
         title: req.body.title,
         year: req.body.year,
         album: req.body.album,
+        file_name: req.body.file_name,
+        file_path: req.body.file_path,
         directory_name: req.body.directory_name,
     })
         .then(
@@ -115,7 +143,7 @@ app.delete("/songs/:id", function (req, res) {
             function (song) {
                 if (song) {
                     song.destroy();
-                    res.json(analyzer.deleteSongFile(song));
+                    analyzer.deleteSongFile(song);
                 } else {
                     res.json({message: "Song does not exist"});
                 }
@@ -144,6 +172,8 @@ app.put("/songs/:id", function(req, res) {
                     song.album = (typeof req.body.album !== 'undefined') ? req.body.album : song.album;
                     song.title = (typeof req.body.title !== 'undefined') ? req.body.title : song.title;
                     song.year = (typeof req.body.year !== 'undefined') ? req.body.year : song.year;
+                    song.file_name = (typeof req.body.file_name !== 'undefined') ? req.body.file_name : song.file_name;
+                    song.file_path = (typeof req.body.file_path !== 'undefined') ? req.body.file_path : song.file_path;
                     song.directory_name = (typeof req.body.directory_name !== 'undefined') ? req.body.directory_name : song.directory_name;
                     song.save()
                         .then(
