@@ -1,10 +1,16 @@
 <h1>SONGS</h1>
-<div>
-    <label>Recherche par titre : <input type="text" ng-model="search.title"></label>
+
+<div id="search">
+    <span> Recherche par titre : </span></span><input type="text" ng-model="search.title">
 </div>
-<div ng-repeat="song in songs | filter:search:strict"
-     style="background-color:black;color:white;display:inline-block;padding:10px;margin:10px;border-radius:10px;cursor:pointer">
-{{song.title}}
-    <input type="button" value="Edit" ng-click="onViewSong(song)">
-    <input type="button" value="X" ng-click="onDeleteSong(song.id)">
+<div id="list-songs">
+    <ul>
+        <div ng-repeat="song in songs | filter:search:strict">
+            <li title="{{song.title}}" class="song" >
+                <h1>{{song.title}}</h1><h2>{{song.artist}}</h2>
+                <input id="btn-edit" type="button" value="Edit" ng-click="onViewSong(song)">
+                <input id="btn-delete"type="button" value="X" ng-click="onDeleteSong(song.id)">
+            </li>
+        </div>
+    </ul>
 </div>

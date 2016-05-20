@@ -1,12 +1,27 @@
-<a href="#/songs">Songs</a>
 
-<h1>Mp3 Song</h1>
-
-<div audios code="song.file_path">
+<div id="nav-song">
+    <a href="#/songs">Songs</a>
 </div>
-<div>
-Titre : <input type="text" ng-model="song.title"><br>
-Artiste : <input type="text" ng-model="song.artist"><br>
-Album : <input type="text" ng-model="song.album"><br>
-Année : <input type="text" ng-model="song.year"><br>
-<input type="button" value="Sauver" ng-click="onSongSave(song)"></div>
+
+<div id="song-form">
+    </br>
+    <div>
+        </br>
+        <h2>Mp3 Song</h2>
+    </div>
+    </br>
+    <div>
+        <ul>
+            <li>Titre : <input type="text" ng-model="song.title"><br><br></li>
+            <li>Artiste : <input type="text" ng-model="song.artist"><br><br></li>
+            <li>Album : <input type="text" ng-model="song.album"><br><br></li>
+            <li>Année : <input type="text" ng-model="song.year"><br><br></li>
+        </ul>
+    </div>
+
+    <div audios code="song.file_path"></div>
+    </br>
+    <input id="btn-edit" type="button" value="Sauver" ng-click="onSongSave(song)"></div>
+</div>
+
+
