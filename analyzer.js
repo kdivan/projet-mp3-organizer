@@ -56,7 +56,7 @@ function extract() {
         //ToDo creation du repertoire a partir de l'album et deplacement du fichier dans l'album
         //Si on ne connais pas l'album on crée un dossier inconnu-mois-en-cours et on deplace
         var newPath = "";
-        requestApiSong(tags);
+        requestApiSong(tags, pathname);
         if (album != "" && typeof album == "string") {
             moveToDirectory("media/" + sanitize(album), pathname);
         } else {
@@ -89,7 +89,7 @@ function moveToDirectory(directory, pathname) {
         })
     });
 }
-function requestApiSong(tags) {
+function requestApiSong(tags, pathname) {
     console.log(typeof tags.album, tags.album);
 
     var refYear = now.getFullYear() + "" + now.getMonth();
@@ -98,6 +98,8 @@ function requestApiSong(tags) {
     tags.artist = tags.artist == "" || typeof tags.artist != "string"?"":sanitize(tags.artist);
     tags.title = tags.title == "" || typeof tags.title != "string"?"":sanitize(tags.title);
     tags.year = tags.year == "" || typeof tags.year != "string"?"":sanitize(tags.year);
+    tags.file_name = path.basename(pathname);
+    tags.file_path = tags.directory_name+"/"+path.basename(pathname);
 
     // Build the post string from an object
     var post_data = querystring.stringify(tags);
@@ -126,9 +128,9 @@ function requestApiSong(tags) {
     post_req.write(post_data);
     post_req.end();
 }
-function editMetaData() {
+function editMetadata() {
 
 }
 module.exports = {
-    editMetaData: editMetaData,
+    editMetaData: editMetadata,
 };
