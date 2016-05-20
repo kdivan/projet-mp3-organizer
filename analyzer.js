@@ -130,7 +130,7 @@ function requestApiSong(tags) {
 }
 
 function deleteSongFile(song) {
-    fs.exists("media/" + song.directory_name + "/" + song.title, function (doesExist) {
+    fs.exists(song.file_path, function (doesExist) {
         if(doesExist) {
             return "deleteSongFile does";
             console.log("deleteSongFile doestexist");
