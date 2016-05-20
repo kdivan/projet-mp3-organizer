@@ -35,7 +35,7 @@ var Song = sequelize.define('song', {
     },
     title: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     year: {
         type: Sequelize.INTEGER(4),
