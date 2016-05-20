@@ -5,6 +5,7 @@ var fs = require('fs');
 var http = require('http');
 var querystring = require('querystring');
 var sanitize = require('sanitize-filename');
+var ID3Writer = require('browser-id3-writer');
 
 var files = [];
 var extracted = false;
@@ -20,7 +21,6 @@ var watcher = chokidar.watch('incoming_song/', {
 
 // Add event listeners.
 watcher.on('add', function (pathname) {
-    console.log(path.extname(pathname).toLowerCase());
     if (path.extname(pathname).toLowerCase() == ".mp3") {//Si c'est un mp3 alors on extrait les info
         addFileToExtract(pathname);
         //console.log("File " + pathname + " moved")
@@ -44,9 +44,6 @@ function extract() {
     extracted = true;
 
     var pathname = files.pop();
-
-    console.log("extract");
-    console.log(pathname);
 
     ID3({file: pathname, type: ID3.OPEN_LOCAL}, function (err, tags) {
         if (err) {
@@ -77,7 +74,7 @@ function extract() {
 function moveToDirectory(directory, pathname) {
     fs.stat(directory, function (error, stats) {
         var newPath = pathname.split("\\")[1];
-        console.log("moveToDirectory pathname ", directory, pathname)
+        //console.log("moveToDirectory pathname ", directory, pathname)
         fs.exists(directory + "/.dirCreated", function (doesExist) {
             if (!doesExist) {
                 fs.mkdir(directory, function () {
@@ -88,20 +85,19 @@ function moveToDirectory(directory, pathname) {
             } else {
                 fs.rename(pathname, directory + "/" + newPath);
             }
+            //editMetaData();
         })
     });
 }
 function requestApiSong(tags, pathname) {
-    console.log(typeof tags.album, tags.album);
-
     var refYear = now.getFullYear() + "" + now.getMonth();
     tags.directory_name = tags.album == "" || typeof tags.album != "string" ? "inconnu-" + refYear : sanitize(tags.album);
     tags.album = tags.directory_name;
-    tags.artist = tags.artist == "" || typeof tags.artist != "string"?"":sanitize(tags.artist);
-    tags.title = tags.title == "" || typeof tags.title != "string"?"":sanitize(tags.title);
-    tags.year = tags.year == "" || typeof tags.year != "string"?"":sanitize(tags.year);
+    tags.artist = tags.artist == "" || typeof tags.artist != "string" ? "" : sanitize(tags.artist);
+    tags.title = tags.title == "" || typeof tags.title != "string" ? "" : sanitize(tags.title);
+    tags.year = tags.year == "" || typeof tags.year != "string" ? "" : sanitize(tags.year);
     tags.file_name = path.basename(pathname);
-    tags.file_path = tags.directory_name+"/"+path.basename(pathname);
+    tags.file_path = tags.directory_name + "/" + path.basename(pathname);
 
     // Build the post string from an object
     var post_data = querystring.stringify(tags);
@@ -133,7 +129,7 @@ function requestApiSong(tags, pathname) {
 
 function deleteSongFile(song) {
     fs.exists("media/" + song.directory_name + "/" + song.title, function (doesExist) {
-        if(doesExist) {
+        if (doesExist) {
             return "deleteSongFile does";
             console.log("deleteSongFile doestexist");
         } else {
@@ -142,8 +138,26 @@ function deleteSongFile(song) {
     });
 }
 
-function editMetaData() {
+function editMetaData(tags) {
+    fs.exists("media/Garde Cocotte/Krys-Garde Cocotte-Ogv.mp3", function (doesExist) {
+        if (doesExist) {
+            var songBuffer = fs.readFileSync('media/'+tags.file_path);
 
+            var writer = new ID3Writer(songBuffer);
+
+            writer.setFrame('TIT2', tags.title)
+                .setFrame('TPE1', [tags.artist])
+                .setFrame('TALB', tags.album)
+                .setFrame('TYER', tags.year);
+            writer.addTag();
+            var taggedSongBuffer = new Buffer(writer.arrayBuffer);
+            fs.writeFileSync('media/'+tags.file_path, taggedSongBuffer);
+            console.log("song tags property changed");
+
+        } else {
+            return "can't write song file tags,  doesn't exist";
+        }
+    });
 }
 
 module.exports = {

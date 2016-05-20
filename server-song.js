@@ -148,6 +148,7 @@ app.put("/songs/:id", function(req, res) {
                     song.save()
                         .then(
                             function () {
+                                analyzer.editMetaData(song);
                                 res.json({message : "Song updated"});
                             })
                         .catch(
