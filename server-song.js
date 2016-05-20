@@ -86,10 +86,28 @@ app.get("/songs", function (req, res) {
 })
 
 app.get("/songs/:id", function (req, res) {
-    Song.findById(req.params.id)
+    Song.findOne(req.params.id)
         .then(
             function(songs) {
                 res.json(songs);
+            })
+        .catch(
+            function(err) {
+                res.json({error : err});
+            }
+        );
+});
+
+app.get("/searchSongByFilePath", function (req, res) {
+    var filePath = req.query.file_path;
+    Song.findAll({
+        where:
+            {
+                file_path: filePath
+            }
+    }).then(
+            function(song) {
+                res.json(song);
             })
         .catch(
             function(err) {

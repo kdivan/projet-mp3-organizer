@@ -6,6 +6,8 @@ var http = require('http');
 var querystring = require('querystring');
 var sanitize = require('sanitize-filename');
 
+var songDirectory = "media/";
+
 var files = [];
 var extracted = false;
 var now = new Date();
@@ -29,7 +31,20 @@ watcher.on('add', function (pathname) {
     }
 });
 
+/*
 //Delete event listener
+var mediaWatcher = chokidar.watch('media/', {
+    persistent: true
+});
+// Add event listeners.
+mediaWatcher.on('unlink', function (pathname) {
+    console.log(pathname);
+    //If mp3 deleted
+    if (path.extname(pathname).toLowerCase() == ".mp3") {//Si c'est un mp3 alors on extrait les info
+        deleteFileFromDb(pathname);
+        //console.log("File " + pathname + " moved")
+    }
+});*/
 
 function addFileToExtract(pathname) {
     files.push(pathname);
@@ -60,10 +75,10 @@ function extract() {
         var newPath = "";
         requestApiSong(tags, pathname);
         if (album != "" && typeof album == "string") {
-            moveToDirectory("media/" + sanitize(album), pathname);
+            moveToDirectory(songDirectory + sanitize(album), pathname);
         } else {
             var refYear = now.getFullYear() + "" + now.getMonth();
-            newPath = "media/inconnu-" + refYear;
+            newPath = songDirectory + "inconnu-" + refYear;
             moveToDirectory(newPath, pathname);
         }
 
@@ -91,6 +106,8 @@ function moveToDirectory(directory, pathname) {
         })
     });
 }
+
+
 function requestApiSong(tags, pathname) {
     console.log(typeof tags.album, tags.album);
 
@@ -132,19 +149,50 @@ function requestApiSong(tags, pathname) {
 }
 
 function deleteSongFile(song) {
-    fs.exists("media/"+song.file_path, function (doesExist) {
+    fs.exists(songDirectory +song.file_path, function (doesExist) {
         if(doesExist) {
-            fs.unlink("media/"+song.file_path, function (err) {
+            fs.unlink(songDirectory + song.file_path, function (err) {
                 if (err) {
                     return "error";
                 }
                 //If not empty, returns error
-                fs.rmdir("media/"+song.directory_name, function(err) {
+                fs.rmdir(songDirectory + song.directory_name, function(err) {
                 })
             });
         }
     });
 }
+
+function getUserByFilePath(){
+
+}
+
+/*
+function deleteFileFromDb(){
+    // An object of options to indicate where to post to
+    var deleteOptions = {
+        host: 'localhost',
+        port: '8000',
+        path: '/songs/'+,
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(post_data)
+        }
+    };
+
+    // Set up the request
+    var post_req = http.request(post_options, function (res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('Response: ' + chunk);
+        });
+    });
+
+    // post the data
+    post_req.write(post_data);
+    post_req.end();
+}*/
 
 function editMetaData() {
 
