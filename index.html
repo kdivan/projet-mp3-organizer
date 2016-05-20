@@ -7,10 +7,6 @@
 </head>
 <body ng-app="MyApp">
 
-    <a href="#/songs">Songs</a>
-    <div>
-    </div>
-
     <div ng-view></div>
 
 <script>
@@ -22,24 +18,18 @@
 
         $rootScope.search = "";
 
-        this.loadSongs  = function() {
+        function loadSongs() {
             $http.get("/songs?count=20").success(function(data){
                 $rootScope.songs = data;
                 console.log( data );
             });
         };
 
-        this.loadSongs();
+        loadSongs();
 
         $interval(function () {
-            console.log("entrer");
-            this.loadSongs();
+            loadSongs();
         }.bind(this), 5000);
-
-        /*$rootScope.$on("reloadSongs", function(){
-            console.log("loadsongs");
-            $scope.this.loadSongs();
-        });*/
 
         $scope.onViewSong = function(song)
         {
@@ -48,7 +38,6 @@
 
         $scope.onDeleteSong = function(songId)
         {
-            console.log("On delete song");
             for (var i = 0; i < $rootScope.songs.length; i++)
             {
                 if ($rootScope.songs[i].id == songId)
@@ -63,17 +52,10 @@
 
     app.controller("SongFormController", function($rootScope, $scope, $routeParams, $location, $http){
 
-        /*this.callReloadSongs = function() {
-            $rootScope.$emit("reloadSongs", {});
-        }
-
-        this.callReloadSongs();*/
-
         if ($rootScope.songs)
             getSongs();
         else {
-            // recuperer les donne en ajax
-            $http.get("/songs?count=20").success(function(data){
+            $http.get("/songs?count=30").success(function(data){
                 $rootScope.songs = data;
                 console.log( data );
                 getSongs();
@@ -86,11 +68,9 @@
                 if ($rootScope.songs[i].id == $routeParams.id) {
                     song = $rootScope.songs[i];
                     console.log(song);
-
                     break;
                 }
             }
-
             if (song) {
                 $scope.song = song;
             }
@@ -98,10 +78,7 @@
 
         $scope.onSongSave = function(song)
         {
-            console.log("on save" + song.id);
             if(typeof song.id !== 'undefined') {
-                //lors du retour au controlleur de base, les données
-                //sont rechargés (une nouvelle requete ajax est faite)
                 $http.put("/songs/" + song.id, song)
                         .success(function (data, status, headers) {
                             $location.path("/songs");
@@ -133,20 +110,17 @@
     });
 
     app.config( function($routeProvider){
-
         $routeProvider
                 .when("/songs", {
                     templateUrl : "songs.html",
                     controller : "SongController"
                 })
                 .when("/songs/:id", {
-                    templateUrl : "song-form.html",
+                    templateUrl : "song.html",
                     controller : "SongFormController"
                 })
-                .otherwise( { redirectTo : "/songs"});
+                .otherwise({ redirectTo : "/songs"});
     });
-
-
 
 </script>
 

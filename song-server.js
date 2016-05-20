@@ -1,74 +1,18 @@
-//TODO: Refactoring du code en séparant dans des fichiers
-var Sequelize = require('sequelize');
 var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
-var analyzer = require('./analyzer.js');
 var app = express();
+
+var sequelize = require('./connection.js');
+var fileManager = require('./file-manager.js');
+
+var Song = sequelize.song;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 app.use(express.static(__dirname));
 
-var sequelize = new Sequelize('esgi', 'root', 'root', {
-    host: 'localhost',
-    dialect: 'mysql',
-    pool: {
-        max: 5,
-        min: 0,
-        idle: 10000
-    },
-});
 
-sequelize
-    .authenticate()
-    .then(function(err) {
-        console.log('Connection has been established successfully.');
-    }, function (err) {
-        console.log('Unable to connect to the database:', err);
-    });
-
-var Song = sequelize.define('song', {
-    artist: {
-        type: Sequelize.STRING,
-        allowNull: true,
-    },
-    title: {
-        type: Sequelize.STRING,
-        allowNull: true,
-    },
-    year: {
-        type: Sequelize.INTEGER(4),
-    },
-    album: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    file_name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    file_path: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-    directory_name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
-});
-
-sequelize
-    .sync({ force: false })
-    .then(function(err) {
-        console.log('It worked!');
-    }, function (err) {
-        console.log('An error occurred while creating the table:', err);
-    });
-
-
-//parametres en post, put, patch : body
-//parametres en get : query
 app.get("/songs", function (req, res) {
     var count = req.query.count;
     if (!count) {
@@ -90,24 +34,6 @@ app.get("/songs/:id", function (req, res) {
         .then(
             function(songs) {
                 res.json(songs);
-            })
-        .catch(
-            function(err) {
-                res.json({error : err});
-            }
-        );
-});
-
-app.get("/searchSongByFilePath", function (req, res) {
-    var filePath = req.query.file_path;
-    Song.findAll({
-        where:
-            {
-                file_path: filePath
-            }
-    }).then(
-            function(song) {
-                res.json(song);
             })
         .catch(
             function(err) {
@@ -143,7 +69,7 @@ app.delete("/songs/:id", function (req, res) {
             function (song) {
                 if (song) {
                     song.destroy();
-                    analyzer.deleteSongFile(song);
+                    fileManager.deleteSongFile(song);
                 } else {
                     res.json({message: "Song does not exist"});
                 }
@@ -178,7 +104,6 @@ app.put("/songs/:id", function(req, res) {
                     song.save()
                         .then(
                             function () {
-                                analyzer.editMetaData(song);
                                 res.json({message : "Song updated"});
                             })
                         .catch(
