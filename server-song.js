@@ -3,7 +3,7 @@ var Sequelize = require('sequelize');
 var express = require('express');
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
-
+var analyzer = require('./analyzer.js');
 var app = express();
 
 app.use(bodyParser.json());
@@ -31,13 +31,15 @@ sequelize
 var Song = sequelize.define('song', {
     artist: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     title: {
         type: Sequelize.STRING,
         allowNull: false,
     },
-    year: Sequelize.INTEGER(4),
+    year: {
+        type: Sequelize.INTEGER(4),
+    },
     album: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -113,6 +115,7 @@ app.delete("/songs/:id", function (req, res) {
             function (song) {
                 if (song) {
                     song.destroy();
+                    res.json(analyzer.deleteSongFile(song));
                 } else {
                     res.json({message: "Song does not exist"});
                 }

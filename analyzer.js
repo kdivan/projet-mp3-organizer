@@ -28,6 +28,8 @@ watcher.on('add', function (pathname) {
     }
 });
 
+//Delete event listener
+
 function addFileToExtract(pathname) {
     files.push(pathname);
     extract();
@@ -125,4 +127,19 @@ function requestApiSong(tags){
     // post the data
     post_req.write(post_data);
     post_req.end();
+}
+
+function deleteSongFile(song) {
+    fs.exists("media/" + song.directory_name + "/" + song.title, function (doesExist) {
+        if(doesExist) {
+            return "deleteSongFile does";
+            console.log("deleteSongFile doestexist");
+        } else {
+            return "deleteSongFile doestexist";
+        }
+    });
+}
+
+module.exports = {
+    deleteSongFile: deleteSongFile,
 }
