@@ -1,6 +1,7 @@
 var fs = require('fs');
 
 var hiddenDirFile = ".dir";
+var songDirectory = "media/";
 
 function moveToDirectory(directory, pathname) {
     fs.stat(directory, function (error, stats) {

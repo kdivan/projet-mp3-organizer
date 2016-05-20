@@ -1,6 +1,6 @@
 <h1>SONGS</h1>
 <div>
-    <input type="text" ng-model="search.title">
+    <label>Recherche par titre : <input type="text" ng-model="search.title"></label>
 </div>
 <div ng-repeat="song in songs | filter:search:strict"
      style="background-color:black;color:white;display:inline-block;padding:10px;margin:10px;border-radius:10px;cursor:pointer">
