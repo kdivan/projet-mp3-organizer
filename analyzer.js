@@ -29,6 +29,8 @@ watcher.on('add', function (pathname) {
     }
 });
 
+//Delete event listener
+
 function addFileToExtract(pathname) {
     files.push(pathname);
     extract();
@@ -128,9 +130,24 @@ function requestApiSong(tags, pathname) {
     post_req.write(post_data);
     post_req.end();
 }
-function editMetadata() {
+
+function deleteSongFile(song) {
+    fs.exists("media/" + song.directory_name + "/" + song.title, function (doesExist) {
+        if(doesExist) {
+            return "deleteSongFile does";
+            console.log("deleteSongFile doestexist");
+        } else {
+            return "deleteSongFile doestexist";
+        }
+    });
+}
+
+function editMetaData() {
 
 }
+
 module.exports = {
-    editMetaData: editMetadata,
-};
+    deleteSongFile: deleteSongFile,
+    editMetaData: editMetaData,
+}
+
